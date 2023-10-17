@@ -17,6 +17,7 @@ void init_node(struct NodeHandle *nh, char name[])
                         (struct sockaddr*)&nh->address, 
                         sizeof(nh->address));
 
+
     if (result == -1)
     {
         printf("Failed To Connect To CROSS Core\n");
