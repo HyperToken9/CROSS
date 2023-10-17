@@ -6,5 +6,8 @@ struct Master{
     
     struct sockaddr_in address;
 
+    // Incoming Node
+    int node_size;
+    struct sockaddr_in node_address;
 };
 
