@@ -10,12 +10,12 @@ void init_node(struct NodeHandle *nh, char name[])
 
     nh->address.sin_family = AF_INET;
     nh->address.sin_addr.s_addr = inet_addr("127.0.0.1");
-    nh->address.sin_port = htons(80808);
+    nh->address.sin_port = htons((uint16_t)80808);
     
 
     int result = connect(nh->socket_descriptor, 
                         (struct sockaddr*)&nh->address, 
-                        len(nh->address));
+                        sizeof(nh->address));
 
     if (result == -1)
     {
@@ -23,6 +23,11 @@ void init_node(struct NodeHandle *nh, char name[])
         exit(0);
     }
 
-    write(nh->socket_descriptor, , );
+    struct MasterMessage message;
+
+    strcpy(message.node_name, "BatMan");
+    message.node_type = SUBSCRIBER;
+
+    write(nh->socket_descriptor, &message, sizeof(message));
 
 }
