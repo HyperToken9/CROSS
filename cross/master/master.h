@@ -10,7 +10,7 @@
 #include <netinet/in.h>
 
 
-#include "master_struct.h"
+#include "structs/master_struct.h"
 #include "../messages/master.h"
 #include "../messages/print.h"
 

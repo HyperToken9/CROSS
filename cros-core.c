@@ -17,14 +17,17 @@ int main()
 
     while(1)
     {
+        // printf("Setting Listening");
         master_listen(&master);
         
+        // printf("Recievend Conenctions\n");
+
         pthread_create(&connect_thread, NULL, 
                        &master_process_incoming_connection,
                        (void *) & master);
         
-        
-        sleep(20);
+        printf("Thread Created  ");
+        sleep(2);
         
         // if (fork() == 0)
         // {
@@ -46,3 +49,8 @@ int main()
 
     return 0;
 }
+
+/* 
+    Future TODO:
+        Adding Time to message
+*/
