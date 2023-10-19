@@ -8,6 +8,6 @@
 #include <arpa/inet.h>
 
 #include "node_handle.h"
-#include "../messages/master.h"
+#include "../messages/node_to_master.h"
 
-void init_node(struct NodeHandle *nh, char name[]);
+void node_init(struct NodeHandle *nh, char name[]);

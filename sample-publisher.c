@@ -5,17 +5,14 @@
 
 int main(int argc, char* argv[])
 {
-    printf("You have entered %d arguments:\n", argc);
-
-    if (argc < 2)
-     {
-        printf("2 Failed\n");
-        return 0;
-     }   
 
     struct NodeHandle nh;
+    struct Publisher string_publisher;
 
-    init_node(&nh, argv[1]);
+    node_init(&nh, "talker");
+
+    publisher_init(&string_publisher, 
+                    "chatter", CROS_MSG_TYPE_STRING);
 
     return 0;
 }

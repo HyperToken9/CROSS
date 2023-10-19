@@ -1,20 +1,29 @@
 
 #include "master.h"
 
-#define PORT_NO 80808
+
+#define PORT_NO 8080
 
 void master_init(struct Master *master)
 {
 
+    /* Setting Up Socket */
     master->socket_descriptor = socket(AF_INET, SOCK_STREAM, 0);
     master->address.sin_family = AF_INET;
     master->address.sin_addr.s_addr = inet_addr("127.0.0.1");
     master->address.sin_port = htons((uint16_t)PORT_NO);
-    
-    bind(master->socket_descriptor, (struct sockaddr*)&master->address, sizeof(master->address));
 
-    listen(master->socket_descriptor, 5);
+    if (bind(master->socket_descriptor, 
+             (struct sockaddr*)&master->address, 
+             sizeof(master->address)) < 0) {
+        perror("bind failed");
+        exit(EXIT_FAILURE);
+    }
 
+    if (listen(master->socket_descriptor, 3) < 0) {
+        perror("listen");
+        exit(EXIT_FAILURE);
+    }
     
     /* Initialize Mutex Locks */
     if (pthread_mutex_init(&master->registry_lock, NULL) != 0) { 
@@ -26,8 +35,9 @@ void master_init(struct Master *master)
         exit(EXIT_FAILURE);
     } 
 
-
-    // pthread_mutex_unlock(&master->registry_lock); 
+    /* Setting Up Registry */
+    master->registry.active_nodes = NULL;
+    
 
     printf("Master Listening At Port %d\n", PORT_NO);
 }
@@ -35,21 +45,35 @@ void master_init(struct Master *master)
 void master_listen(struct Master *master)
 {
    
-    pthread_mutex_lock(&master->incoming_node_lock);
+    
 
     // printf("Access Acquired\n");
-    // master->incoming_node.node_size = sizeof(master->incoming_node.node_size);
+    master->incoming_node.node_size = sizeof(int);
     
-    master->incoming_node.socket_descriptor = accept(master->socket_descriptor, 
-                                                    (struct sockaddr*)& master->incoming_node.node_address, 
-                                                    &master->incoming_node.node_size);
+    int temp_socket_descriptor = accept(master->socket_descriptor, 
+                                        (struct sockaddr*)& master->address, 
+                                        &master->incoming_node.node_size);
 
+    if (master->incoming_node.socket_descriptor < 0)
+    {
+        printf("Accept Failed\n");
+        printf("Error Code: %d\n", master->incoming_node.socket_descriptor);
+    }   
+    pthread_mutex_lock(&master->incoming_node_lock);
+
+    master->incoming_node.in_use = 1;
+    master->incoming_node.socket_descriptor = temp_socket_descriptor;
     // printf("Access Dissmissed\n");
 
     pthread_mutex_unlock(&master->incoming_node_lock);
     
 }
 
+void master_wait_thread_initialization(struct Master *master)
+{
+    sleep(2);
+    while (master->incoming_node.in_use);
+}
 /*
     Runs parallely to extablish a connection with incoming nodes
 */
@@ -58,9 +82,6 @@ void* master_process_incoming_connection(void * arg)
     // Listens to incomming node
     // Takes details from node
     //   - Node Name
-    //   - Subscriber / Publisher
-    //   - Topic Name
-    //   - Data Type
     // pthread_detach(pthread_self());
 
     /* Recieve Arguments */
@@ -74,50 +95,118 @@ void* master_process_incoming_connection(void * arg)
 
     node_socket = master->incoming_node;
 
-    // close(master->incoming_node.socket_descriptor);
-
+    master->incoming_node.in_use = 0;
     pthread_mutex_unlock(&master->incoming_node_lock);
 
-    master = NULL;
+    // master = NULL;
     /* / / / / / / / / / / / / / / */
 
 
     /* Try to handle incoming node */
-    struct MasterMessage message;
-    // char buffer[2048];
+    struct NodeToMasterMessage message;
     int flag;
     
     flag = read(node_socket.socket_descriptor, 
-                // buffer, 2048);
-                &message, sizeof(struct MasterMessage));
+                &message, sizeof(struct NodeToMasterMessage));
 
     if (flag < 0)
         perror("Error receiving data");
-    else
-        printf("Revied");
 
     // printf("Rec: %s\n", buffer);
     print_master_message(message);
 
-    // sleep(5);
+    /* Process Incomming Data */
+    master_process_message(master, message);
 
-    printf("Exiting THread\n");
+    /* Display Updates */
+    master_print_registry(master);
+
+    /* Shutting Conenction Down */
+    printf("Exiting Thread\n");
     close(node_socket.socket_descriptor);
-    // sleep(2);
-    // pthread_exit(NULL);
+    pthread_exit(NULL);
 
 }
 
-void master_close_connection(struct Master *master)
+
+void master_process_message(struct Master *master, struct NodeToMasterMessage message)
 {
-    printf("Master_CloseConnection Does Nothing\n");
-    // close(master->connect_sd);
+    struct NodeList * traveral_ptr, * new_node;
+    
+    if (message.type == NODE_INIT)
+    {   
+        printf("Messagge Typing\n");
+        /* Initialize New Node */
+        new_node = (struct NodeList*)calloc(sizeof(struct NodeList), 1);
+        strcpy(new_node->node_name, message.node_name);
+        // new_node->topics = NULL;
+        // new_node->next = NULL;
+
+        /* Add to List */
+        pthread_mutex_lock(&master->registry_lock);
+        traveral_ptr = master->registry.active_nodes;
+        if (traveral_ptr == NULL)
+        {
+            master->registry.active_nodes = new_node;
+        }
+        else
+        {
+            while (traveral_ptr->next != NULL)
+            {
+                printf("Comparing: %s with %s\n", traveral_ptr->node_name, new_node->node_name);
+                if (strcmp(traveral_ptr->node_name, new_node->node_name) == 0)
+                {
+                    printf("Node with name {%s} already exists\n", 
+                            new_node->node_name);
+                    pthread_mutex_unlock(&master->registry_lock);
+                    return;
+                }
+
+                traveral_ptr = traveral_ptr->next;
+            } 
+            
+            printf("Comparing: %s with %s\n", traveral_ptr->node_name, new_node->node_name);
+            if (strcmp(traveral_ptr->node_name, new_node->node_name) == 0)
+            {
+                printf("Node with name {%s} already exists\n", 
+                        new_node->node_name);
+                pthread_mutex_unlock(&master->registry_lock);
+                return;
+            }
+
+
+            traveral_ptr->next = new_node;
+        } 
+        pthread_mutex_unlock(&master->registry_lock);
+
+    }
 }
 
-void master_close(struct Master *master)
+void master_print_registry(struct Master *master)
 {
+    int i = 0;
+    
+    printf("~~ Master Registry ~~\n");
+    
+    for (struct NodeList * temp = master->registry.active_nodes; temp != NULL; temp = temp->next)
+    {
+        printf("Node %d : %s\n", i++, temp->node_name);
+    }
+    printf("~~ ~~ ~~ ~~ ~~ ~~ ~~");
 
-    printf("Master Shutting Down\n");
 }
+
+
+// void master_close_connection(struct Master *master)
+// {
+//     printf("Master_CloseConnection Does Nothing\n");
+//     // close(master->connect_sd);
+// }
+
+// void master_close(struct Master *master)
+// {
+
+//     printf("Master Shutting Down\n");
+// }
 
  

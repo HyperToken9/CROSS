@@ -1,5 +1,5 @@
 #include <stdio.h>
 
-#include "master.h"
+#include "node_to_master.h"
 
-void print_master_message(struct MasterMessage message);
+void print_master_message(struct NodeToMasterMessage message);

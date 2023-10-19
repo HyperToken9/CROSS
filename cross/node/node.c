@@ -16,7 +16,7 @@ void init_node(struct NodeHandle *nh, char name[])
 
     nh->address.sin_family = AF_INET;
     nh->address.sin_addr.s_addr = inet_addr("127.0.0.1");
-    nh->address.sin_port = htons((uint16_t)80808);
+    nh->address.sin_port = htons((uint16_t)8080);
     
 
     int result = connect(nh->socket_descriptor, 
@@ -29,16 +29,12 @@ void init_node(struct NodeHandle *nh, char name[])
         exit(0);
     }
 
-    struct MasterMessage message;
+    struct NodeToMasterMessage message;
     strcpy(message.node_name, name);
-    message.node_type = SUBSCRIBER;
-    message.id = 284;
-    // char buffer[2048];
-    // printf("Enter Message: ");
-    // scanf("%s", buffer);
-    result = write(nh->socket_descriptor, 
-                //    buffer, 2048);
-                   &message, sizeof(struct MasterMessage));
+    message.type = NODE_INIT;
+
+    result = write(nh->socket_descriptor,
+                   &message, sizeof(struct NodeToMasterMessage));
 
     if (result < 0) 
     {
