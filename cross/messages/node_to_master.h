@@ -6,7 +6,9 @@
 struct NodeToMasterMessage 
 {
     char node_name[50];
-    // int id;
-    enum MessageType type;
+    char topic_name[50];
+    enum NodeToMasterMessageType type;
 
 }__attribute__((packed));
+
+typedef struct NodeToMasterMessage NodeToMasterMessage;

@@ -103,11 +103,11 @@ void* master_process_incoming_connection(void * arg)
 
 
     /* Try to handle incoming node */
-    struct NodeToMasterMessage message;
+    NodeToMasterMessage message;
     int flag;
     
     flag = read(node_socket.socket_descriptor, 
-                &message, sizeof(struct NodeToMasterMessage));
+                &message, sizeof(NodeToMasterMessage));
 
     if (flag < 0)
         perror("Error receiving data");
@@ -129,7 +129,7 @@ void* master_process_incoming_connection(void * arg)
 }
 
 
-void master_process_message(struct Master *master, struct NodeToMasterMessage message)
+void master_process_message(struct Master *master, NodeToMasterMessage message)
 {
     struct NodeList * traveral_ptr, * new_node;
     

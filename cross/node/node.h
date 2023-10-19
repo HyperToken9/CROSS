@@ -8,6 +8,13 @@
 #include <arpa/inet.h>
 
 #include "node_handle.h"
+// #include "../publisher/publisher_handle.h"
 #include "../messages/node_to_master.h"
 
-void node_init(struct NodeHandle *nh, char name[]);
+void node_init(NodeHandle *nh, char name[]);
+
+void node_connect_to_master(NodeHandle *nh);
+
+void node_message_master(NodeHandle *nh, NodeToMasterMessage message);
+
+void node_disconnect_from_master(NodeHandle *nh);

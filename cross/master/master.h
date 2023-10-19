@@ -29,7 +29,7 @@ void master_wait_thread_initialization(struct Master *master);
 
 void* master_process_incoming_connection(void* arg); //(struct Master *master);
 
-void master_process_message(struct Master *master, struct NodeToMasterMessage message);
+void master_process_message(struct Master *master, NodeToMasterMessage message);
 
 // void master_close_connection(struct Master *master);
 // void master_close(struct Master *master);

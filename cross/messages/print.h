@@ -2,4 +2,4 @@
 
 #include "node_to_master.h"
 
-void print_master_message(struct NodeToMasterMessage message);
+void print_master_message(NodeToMasterMessage message);

@@ -2,17 +2,20 @@
 #include<stdio.h>
 
 #include "cross/node/node.h"
+#include "cross/publisher/publisher.h"
 
 int main(int argc, char* argv[])
 {
 
-    struct NodeHandle nh;
-    struct Publisher string_publisher;
+    NodeHandle nh;
+    Publisher string_publisher;
 
     node_init(&nh, "talker");
 
-    publisher_init(&string_publisher, 
+    publisher_init(&string_publisher, &nh,
                     "chatter", CROS_MSG_TYPE_STRING);
+
+    // printf("Passed Through");
 
     return 0;
 }

@@ -2,10 +2,35 @@
 #include "node.h"
 
 
-void init_node(struct NodeHandle *nh, char name[])
+void node_init(NodeHandle *nh, char name[])
 {
-    // printf("Method Currently Does Nothing\n");
 
+    if ( strcmp(name, "") == 0 ) 
+    {
+        printf("Node Needs A Valid Name\n");
+        exit(0);
+        return;
+    }
+
+    strcpy(nh->node_name, name);
+
+    node_connect_to_master(nh);
+
+    NodeToMasterMessage message;
+    strcpy(message.node_name, name);
+    message.type = NODE_INIT;
+
+    node_message_master(nh, message);
+
+    node_disconnect_from_master(nh);
+
+    nh->is_registered = 1;
+    
+}
+
+
+void node_connect_to_master(NodeHandle *nh)
+{
     nh->socket_descriptor = socket(AF_INET, SOCK_STREAM, 0);
 
     if (nh->socket_descriptor < 0)
@@ -28,20 +53,23 @@ void init_node(struct NodeHandle *nh, char name[])
         printf("Failed To Connect To CROSS Core\n");
         exit(0);
     }
+}
 
-    struct NodeToMasterMessage message;
-    strcpy(message.node_name, name);
-    message.type = NODE_INIT;
-
-    result = write(nh->socket_descriptor,
-                   &message, sizeof(struct NodeToMasterMessage));
+void node_message_master(NodeHandle *nh, NodeToMasterMessage message)
+{
+    int result = write(nh->socket_descriptor,
+                   &message, sizeof(NodeToMasterMessage));
 
     if (result < 0) 
     {
-        perror("Error sending data");
+        perror("Error Writing NodeToMasterMessage\n");
         exit(EXIT_FAILURE);
     }
-    else    
-        printf("Message Succesful\n");
+    // else    
+        // printf("Message Succesful\n");
+}
+
+void node_disconnect_from_master(NodeHandle *nh)
+{
     close(nh->socket_descriptor);
 }
