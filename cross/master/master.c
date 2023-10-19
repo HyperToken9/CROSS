@@ -71,7 +71,7 @@ void master_listen(struct Master *master)
 
 void master_wait_thread_initialization(struct Master *master)
 {
-    sleep(2);
+    // sleep(2);
     while (master->incoming_node.in_use);
 }
 /*
