@@ -6,8 +6,8 @@ cros-core: cros-core.c cros
 sample-publisher: sample-publisher.c cros
 	gcc -o sample-publisher.o sample-publisher.c build/cros.a
 
-cros: master messages publisher node
-	ar rcs build/cros.a build/master.o build/messages.o build/node.o build/publisher.o 
+cros: master messages node subscriber publisher
+	ar rcs build/cros.a build/master.o build/messages.o build/node.o build/publisher.o build/subscriber.o
 
 master: cross/master/master.c
 	gcc -o build/master.o -c cross/master/master.c -pthread
@@ -20,3 +20,6 @@ node: cross/node/node.c
 
 publisher: cross/publisher/publisher.c
 	gcc -o build/publisher.o -c cross/publisher/publisher.c
+
+subscriber: cross/subscriber/subscriber.c
+	gcc -o build/subscriber.o -c cross/subscriber/subscriber.c

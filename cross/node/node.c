@@ -17,9 +17,9 @@ void node_init(NodeHandle *nh, char name[])
     node_connect_to_master(nh);
 
     NodeToMasterMessage message;
-    strcpy(message.node_name, name);
     message.type = NODE_INIT;
-
+    strcpy(message.node_name, name);
+    
     node_message_master(nh, message);
 
     node_disconnect_from_master(nh);

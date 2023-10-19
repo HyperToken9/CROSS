@@ -3,7 +3,7 @@
 #include "publisher.h"
 
 
-void publisher_init(Publisher* string_publisher, NodeHandle* nh, char topic_name[], enum CROS_MessageTypes type)
+void publisher_init(Publisher* publisher, NodeHandle* nh, char topic_name[], enum CROS_MessageTypes type)
 {
     // printf("PUBLIHER INIT: Sends A NODE INIT TYPE MESSage\n");
     // printf("PUBLISHER Needs to be initialized after the node ")
@@ -18,10 +18,12 @@ void publisher_init(Publisher* string_publisher, NodeHandle* nh, char topic_name
     node_connect_to_master(nh);
 
     NodeToMasterMessage message;
+    message.type = NEW_PUBLISHER;
+    message.topic_type = type;
     strcpy(message.topic_name, topic_name);
     strcpy(message.node_name, nh->node_name);
-
-    message.type = NEW_PUBLISHER;
+    
+    
 
     node_message_master(nh, message);
 

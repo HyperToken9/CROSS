@@ -1,6 +1,5 @@
 
-#include <pthread.h> 
-#include "nodes/node_list.h"
+#include "node_list.h"
 
 struct MasterRegistry{
     

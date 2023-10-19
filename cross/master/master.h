@@ -13,7 +13,7 @@
 
 
 #include "structs/master_struct.h"
-#include "structs/nodes/node_list.h"
+#include "structs/node_list.h"
 
 #include "../messages/node_to_master.h"
 #include "../messages/print.h"

@@ -131,8 +131,10 @@ void* master_process_incoming_connection(void * arg)
 
 void master_process_message(struct Master *master, NodeToMasterMessage message)
 {
-    struct NodeList * traveral_ptr, * new_node;
+    struct NodeList *node_trav_ptr, * new_node;
+    struct TopicList *topic_trav_ptr,*new_topic;
     
+    pthread_mutex_lock(&master->registry_lock);
     if (message.type == NODE_INIT)
     {   
         printf("Messagge Typing\n");
@@ -143,18 +145,17 @@ void master_process_message(struct Master *master, NodeToMasterMessage message)
         // new_node->next = NULL;
 
         /* Add to List */
-        pthread_mutex_lock(&master->registry_lock);
-        traveral_ptr = master->registry.active_nodes;
-        if (traveral_ptr == NULL)
+        node_trav_ptr = master->registry.active_nodes;
+        if (node_trav_ptr == NULL)
         {
             master->registry.active_nodes = new_node;
         }
         else
         {
-            while (traveral_ptr->next != NULL)
+            while (node_trav_ptr->next != NULL)
             {
-                printf("Comparing: %s with %s\n", traveral_ptr->node_name, new_node->node_name);
-                if (strcmp(traveral_ptr->node_name, new_node->node_name) == 0)
+                printf("Comparing: %s with %s\n", node_trav_ptr->node_name, new_node->node_name);
+                if (strcmp(node_trav_ptr->node_name, new_node->node_name) == 0)
                 {
                     printf("Node with name {%s} already exists\n", 
                             new_node->node_name);
@@ -162,11 +163,11 @@ void master_process_message(struct Master *master, NodeToMasterMessage message)
                     return;
                 }
 
-                traveral_ptr = traveral_ptr->next;
+                node_trav_ptr = node_trav_ptr->next;
             } 
             
-            printf("Comparing: %s with %s\n", traveral_ptr->node_name, new_node->node_name);
-            if (strcmp(traveral_ptr->node_name, new_node->node_name) == 0)
+            printf("Comparing: %s with %s\n", node_trav_ptr->node_name, new_node->node_name);
+            if (strcmp(node_trav_ptr->node_name, new_node->node_name) == 0)
             {
                 printf("Node with name {%s} already exists\n", 
                         new_node->node_name);
@@ -175,22 +176,79 @@ void master_process_message(struct Master *master, NodeToMasterMessage message)
             }
 
 
-            traveral_ptr->next = new_node;
+            node_trav_ptr->next = new_node;
         } 
-        pthread_mutex_unlock(&master->registry_lock);
+        
 
     }
+    else if ((message.type == NEW_PUBLISHER) 
+          || (message.type == NEW_SUBSCRIBER))
+    {
+        /*  We recieve 
+         *     - node name
+         *     - topic name
+         *     - topic type
+         1. Need to fine the node to attach the topic to
+            i. We assume the node is in the list
+         2. Add Node to topic list
+         MAIN: Desiging and setting up a peer to peer connection between nodes
+         3. Inform all the future nodes subscribed to that topic to listen to a port
+         4. Inform all the prexisting nodes about the new port
+         */ 
+        
+        // 1. 
+        node_trav_ptr = master->registry.active_nodes;
+
+        while (strcmp(node_trav_ptr->node_name, message.node_name) != 0)
+            node_trav_ptr = node_trav_ptr->next; 
+        
+        // 2.
+        // ! Need to check topic type conflicts
+
+        new_topic = (struct TopicList*)calloc(sizeof(struct TopicList), 1);
+        strcpy(new_topic->topic_name, message.topic_name); 
+        new_topic->message_type = message.topic_type;
+        if (message.type == NEW_PUBLISHER)
+            new_topic->type = PUBLISHER;
+        else 
+            new_topic->type = SUBSCRIBER; 
+
+        if (node_trav_ptr->topics == NULL)
+            node_trav_ptr->topics = new_topic;
+        else
+        {
+            topic_trav_ptr = node_trav_ptr->topics;
+
+            while (topic_trav_ptr->next)
+                topic_trav_ptr = topic_trav_ptr->next;
+            
+            topic_trav_ptr->next = new_topic;
+
+        }
+        
+    }
+    else
+        printf("This Message Type is not supported by cros YET\n");
+    
+    pthread_mutex_unlock(&master->registry_lock);
+
 }
 
 void master_print_registry(struct Master *master)
-{
-    int i = 0;
-    
+{   
     printf("~~ Master Registry ~~\n");
     
-    for (struct NodeList * temp = master->registry.active_nodes; temp != NULL; temp = temp->next)
+    for (struct NodeList * node = master->registry.active_nodes; node != NULL; node = node->next)
     {
-        printf("Node %d : %s\n", i++, temp->node_name);
+        printf("Node { %s }:", node->node_name);
+
+        for(struct TopicList * topic = node->topics; topic != NULL; topic = topic->next)
+        {
+            printf(" %s ( %s ) | ", topic->topic_name, topic->type == SUBSCRIBER ? "SUB": "PUB");
+        } 
+
+        printf("\n");
+
     }
     printf("~~ ~~ ~~ ~~ ~~ ~~ ~~");
 
