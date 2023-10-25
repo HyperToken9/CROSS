@@ -71,7 +71,7 @@ void master_listen(struct Master *master)
 
 void master_wait_thread_initialization(struct Master *master)
 {
-    // sleep(2);
+    sleep(2); // Comment out when not testing
     while (master->incoming_node.in_use);
 }
 /*
@@ -132,15 +132,15 @@ void* master_process_incoming_connection(void * arg)
 void master_process_message(struct Master *master, NodeToMasterMessage message)
 {
     struct NodeList *node_trav_ptr, * new_node;
-    struct TopicList *topic_trav_ptr,*new_topic;
+    struct TopicList *topic_trav_ptr, *new_topic;
     
     pthread_mutex_lock(&master->registry_lock);
-    if (message.type == NODE_INIT)
+    if (message.type == INIT_NODE)
     {   
-        printf("Messagge Typing\n");
         /* Initialize New Node */
         new_node = (struct NodeList*)calloc(sizeof(struct NodeList), 1);
-        strcpy(new_node->node_name, message.node_name);
+        strcpy(new_node->name, message.node_name);
+        new_node->address = message.node_address;
         // new_node->topics = NULL;
         // new_node->next = NULL;
 
@@ -154,11 +154,11 @@ void master_process_message(struct Master *master, NodeToMasterMessage message)
         {
             while (node_trav_ptr->next != NULL)
             {
-                printf("Comparing: %s with %s\n", node_trav_ptr->node_name, new_node->node_name);
-                if (strcmp(node_trav_ptr->node_name, new_node->node_name) == 0)
+                printf("Comparing: %s with %s\n", node_trav_ptr->name, new_node->name);
+                if (strcmp(node_trav_ptr->name, new_node->name) == 0)
                 {
                     printf("Node with name {%s} already exists\n", 
-                            new_node->node_name);
+                            new_node->name);
                     pthread_mutex_unlock(&master->registry_lock);
                     return;
                 }
@@ -166,11 +166,11 @@ void master_process_message(struct Master *master, NodeToMasterMessage message)
                 node_trav_ptr = node_trav_ptr->next;
             } 
             
-            printf("Comparing: %s with %s\n", node_trav_ptr->node_name, new_node->node_name);
-            if (strcmp(node_trav_ptr->node_name, new_node->node_name) == 0)
+            printf("Comparing: %s with %s\n", node_trav_ptr->name, new_node->name);
+            if (strcmp(node_trav_ptr->name, new_node->name) == 0)
             {
                 printf("Node with name {%s} already exists\n", 
-                        new_node->node_name);
+                        new_node->name);
                 pthread_mutex_unlock(&master->registry_lock);
                 return;
             }
@@ -199,7 +199,7 @@ void master_process_message(struct Master *master, NodeToMasterMessage message)
         // 1. 
         node_trav_ptr = master->registry.active_nodes;
 
-        while (strcmp(node_trav_ptr->node_name, message.node_name) != 0)
+        while (strcmp(node_trav_ptr->name, message.node_name) != 0)
             node_trav_ptr = node_trav_ptr->next; 
         
         // 2.
@@ -240,7 +240,7 @@ void master_print_registry(struct Master *master)
     
     for (struct NodeList * node = master->registry.active_nodes; node != NULL; node = node->next)
     {
-        printf("Node { %s }:", node->node_name);
+        printf("Node { %s } At Port (%d):", node->name, ntohs(node->address.sin_port));
 
         for(struct TopicList * topic = node->topics; topic != NULL; topic = topic->next)
         {

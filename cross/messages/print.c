@@ -9,7 +9,7 @@ void print_master_message(NodeToMasterMessage message)
     //TODO: print_node_type(message.node_name);
     printf("\tMessage Type: ");
 
-    if (message.type == NODE_INIT)
+    if (message.type == INIT_NODE)
         printf("Node Initialization");
     else if (message.type == NEW_SUBSCRIBER)
         printf("New Subcriber");

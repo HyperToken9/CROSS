@@ -4,10 +4,16 @@
 
 struct NodeList
 {
-    
-    char node_name[50];
+    char name[50];
 
-    struct TopicList *topics;
+    struct sockaddr_in address;
     
+    /*
+        List Of Topics This Node 
+        Subscribes or Publishes To
+    */
+    struct TopicList *topics;
+
+    /* Pointer to next Node in List*/
     struct NodeList* next;
 };

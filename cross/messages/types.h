@@ -1,7 +1,7 @@
 #pragma once
 
 enum NodeToMasterMessageType{
-    NODE_INIT,
+    INIT_NODE,
     NEW_SUBSCRIBER,
     NEW_PUBLISHER
 };
