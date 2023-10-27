@@ -24,5 +24,10 @@ int main(int argc, char* argv[])
     // subscriber_init(&int_subscriber, &nh1, "hup2", CROS_MSG_TYPE_INT);
     // printf("Passed Through");
 
+
+    // Dont Quit
+    while(1);
+
+
     return 0;
 }

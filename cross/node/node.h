@@ -13,6 +13,8 @@
 
 void node_init(NodeHandle *nh, char name[]);
 
+void* node_initialize_reading_thread(void * arguments);
+
 void node_connect_to_master(NodeHandle *nh);
 
 void node_message_master(NodeHandle *nh, NodeToMasterMessage message);

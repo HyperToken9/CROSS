@@ -16,7 +16,7 @@ messages: cross/messages/print.c
 	gcc -o build/messages.o -c cross/messages/print.c
 
 node: cross/node/node.c
-	gcc -o build/node.o -c cross/node/node.c 
+	gcc -o build/node.o -c cross/node/node.c -pthread
 
 publisher: cross/publisher/publisher.c
 	gcc -o build/publisher.o -c cross/publisher/publisher.c

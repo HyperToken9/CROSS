@@ -17,9 +17,9 @@ void node_init(NodeHandle *nh, char name[])
         exit(0);
     }
 
-    // Create Node Thread
 
     // Set Up a socket where Other Nodes Message the Node
+    /* Initialize Reading Socket */
     nh->reading_socket_descriptor = socket(AF_INET, SOCK_STREAM, 0);
     nh->reading_address.sin_family = AF_INET;
     nh->reading_address.sin_addr.s_addr = inet_addr("127.0.0.1");
@@ -35,13 +35,23 @@ void node_init(NodeHandle *nh, char name[])
     getsockname(nh->reading_socket_descriptor, (struct sockaddr *)&nh->reading_address, &addr_len);
 
     // Display the assigned port number
-    printf("Assigned Port Number: %d\n", ntohs(nh->reading_address.sin_port));
+    // printf("Assigned Port Number: %d\n", ntohs(nh->reading_address.sin_port));
 
-    // Initialize Mutex to Ensure only a singular thread is accessing node handle
+    /* Initialize Registry Mutex*/ 
+    if (pthread_mutex_init(&nh->registry_lock, NULL) != 0) { 
+        printf("\n Registry Lock Failed\n"); 
+        exit(EXIT_FAILURE);
+    } 
 
+    /* Create Node Reading Thread */
+    pthread_create(&nh->reading_thread, NULL, 
+                   &node_initialize_reading_thread,
+                   (void *) nh);
+    
     strcpy(nh->node_name, name);
     
-    
+
+    /* Get Registered with Master */
     node_connect_to_master(nh);
 
     /* Create Message */
@@ -58,6 +68,37 @@ void node_init(NodeHandle *nh, char name[])
     
 }
 
+void* node_initialize_reading_thread(void * arguments)
+{
+    NodeHandle* nh = (NodeHandle*) arguments;
+    int socket_descriptor, length, flag;
+    // printf("Node %s has initialized reading thread\n", nh->node_name);
+    while(1) // TODO : Use a variable in arguments instead
+    {
+        length = sizeof(length);
+        socket_descriptor = accept(nh->reading_socket_descriptor, 
+                                   (struct sockaddr*)&nh->reading_address,
+                                   &length);
+
+        /* Reading and Writing */
+        /*
+            Where can the messages come from 
+                - Master Node
+                - Other Nodes
+
+            What type of messages can we expect
+            from master
+                - Ports of new nodes subscribed to a topic 
+                - Ports of new nodes publishing to a topic
+            other nodes
+                - Publications
+        */
+
+        // flag = read(socket_descriptor, ,); 
+
+
+    }
+}
 
 void node_connect_to_master(NodeHandle *nh)
 {

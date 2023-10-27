@@ -20,7 +20,7 @@ typedef struct Publication Publication;
 struct NodeHandle{
 
     /* Node Thread */ 
-    pthread_t listen_thread;
+    pthread_t reading_thread;
     // pthread_mutex_t handle_lock;
     
     /* Networking : Miscellaneous to Node */ 
@@ -36,6 +36,7 @@ struct NodeHandle{
     int is_registered;
     char node_name[50];
 
+    pthread_mutex_t registry_lock;
     Subscription * subscriptions;
     Publication * publications;
 };
