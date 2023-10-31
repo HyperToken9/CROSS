@@ -3,8 +3,15 @@
 #include <pthread.h> 
 #include <netinet/in.h>
 
+struct NodePort{
+    struct sockaddr_in address;
+    struct NodePort * next;
+};
+typedef struct NodePort NodePort;
+
+
 struct Subscription{
-    
+    char topic_name[50];
     struct Subscription * next;
 };
 typedef struct Subscription Subscription;
@@ -12,6 +19,9 @@ typedef struct Subscription Subscription;
 
 struct Publication{
     
+    char topic_name[50];
+    NodePort * subscribed_nodes;
+
     struct Publication * next;
 };
 typedef struct Publication Publication;
@@ -21,7 +31,6 @@ struct NodeHandle{
 
     /* Node Thread */ 
     pthread_t reading_thread;
-    // pthread_mutex_t handle_lock;
     
     /* Networking : Miscellaneous to Node */ 
     int reading_socket_descriptor;

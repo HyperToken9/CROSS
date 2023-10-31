@@ -2,11 +2,12 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "subscriber_handle.h"
 
 #include "../node/node_handle.h"
-#include "../node/node.h"
+#include "../node/node.h" // Get Rid of this -- Add dependencies to Networking
 
 #include "../messages/node_to_master.h"
 #include "../messages/types.h"

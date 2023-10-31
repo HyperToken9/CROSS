@@ -10,6 +10,7 @@
 #include "node_handle.h"
 // #include "../publisher/publisher_handle.h"
 #include "../messages/node_to_master.h"
+#include "../messages/node_to_node.h"
 
 void node_init(NodeHandle *nh, char name[]);
 

@@ -17,6 +17,10 @@ void node_init(NodeHandle *nh, char name[])
         exit(0);
     }
 
+    /* Initialize Node Handle */
+    strcpy(nh->node_name, name);
+    nh->publications = NULL;
+    nh->subscriptions = NULL;
 
     // Set Up a socket where Other Nodes Message the Node
     /* Initialize Reading Socket */
@@ -48,7 +52,7 @@ void node_init(NodeHandle *nh, char name[])
                    &node_initialize_reading_thread,
                    (void *) nh);
     
-    strcpy(nh->node_name, name);
+    
     
 
     /* Get Registered with Master */
@@ -80,7 +84,7 @@ void* node_initialize_reading_thread(void * arguments)
                                    (struct sockaddr*)&nh->reading_address,
                                    &length);
 
-        /* Reading and Writing */
+        /* Reading Incoming Messages */
         /*
             Where can the messages come from 
                 - Master Node
@@ -88,13 +92,36 @@ void* node_initialize_reading_thread(void * arguments)
 
             What type of messages can we expect
             from master
-                - Ports of new nodes subscribed to a topic 
                 - Ports of new nodes publishing to a topic
             other nodes
                 - Publications
         */
+        NodeToNodeMessage incoming_message;
+        flag = read(socket_descriptor, &incoming_message, sizeof(incoming_message)); 
 
-        // flag = read(socket_descriptor, ,); 
+        if (incoming_message.from_master)
+        {
+            printf("Node Recieved Message from master\n");
+            // Master Says ... 
+            // There is Node X at port P 
+            // That is subscribed to topic T
+            // Which you publish to
+
+            NodePort* new_port = (NodePort*)calloc(sizeof(NodePort),1);
+
+            new_port->next = 0;
+            new_port->address = incoming_message.address;
+
+            // 1. Find that publication
+            // 2. Add the new port to the end of the subscribed nodes        
+            // if (nh->)
+
+
+        }
+        else
+        {
+            printf("Recieved Data from subscribed topic\n");
+        }
 
 
     }

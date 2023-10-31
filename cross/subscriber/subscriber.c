@@ -12,6 +12,27 @@ void subscriber_init(Subscriber* subscriber, NodeHandle* nh, char topic_name[], 
         exit(0);
     }
 
+    /* Update Node Handle */
+    Subscription * subscription = (Subscription *) calloc(sizeof(Subscription),1); 
+
+    subscription->next = NULL;
+    strcpy(subscription->topic_name,topic_name); 
+
+    Subscription * temp;
+
+    // TODO Try Making this generic
+    if (nh->subscriptions == NULL)
+        nh->subscriptions = subscription;
+    else
+    {   
+        temp = subscription;
+        while (temp->next != NULL)
+            temp = temp->next;
+        temp->next = subscription;
+    }
+
+
+    /* Relay Subscription to Master */
     node_connect_to_master(nh);
 
     NodeToMasterMessage message;
