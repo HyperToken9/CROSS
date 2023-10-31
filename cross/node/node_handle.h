@@ -3,16 +3,20 @@
 #include <pthread.h> 
 #include <netinet/in.h>
 
+#include "../linkedlist/linkedlist.h"
+
 struct NodePort{
     struct sockaddr_in address;
-    struct NodePort * next;
+
+    // struct NodePort * next;
+
 };
 typedef struct NodePort NodePort;
 
 
 struct Subscription{
     char topic_name[50];
-    struct Subscription * next;
+    // struct Subscription * next;
 };
 typedef struct Subscription Subscription;
 
@@ -20,9 +24,12 @@ typedef struct Subscription Subscription;
 struct Publication{
     
     char topic_name[50];
-    NodePort * subscribed_nodes;
 
-    struct Publication * next;
+    /* List of Node Ports */
+    LinkedListNode * subscribed_nodes;
+    // NodePort * subscribed_nodes;
+
+    // struct Publication * next;
 };
 typedef struct Publication Publication;
 
@@ -46,7 +53,14 @@ struct NodeHandle{
     char node_name[50];
 
     pthread_mutex_t registry_lock;
-    Subscription * subscriptions;
-    Publication * publications;
+
+    /* List of Publication */
+    LinkedListNode * subscriptions;
+    // Subscription * subscriptions;
+
+    /* List of Subscription */
+    LinkedListNode * publications;
+    // Publication * publications;
+
 };
 typedef struct NodeHandle NodeHandle;

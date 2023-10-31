@@ -34,7 +34,7 @@ void node_init(NodeHandle *nh, char name[])
         sizeof(nh->reading_address));
     listen(nh->reading_socket_descriptor, 10);
 
-    // Use getsockname to retrieve the actual port number
+    /* Use getsockname to retrieve the actual port number */ 
     socklen_t addr_len = sizeof(nh->reading_address);
     getsockname(nh->reading_socket_descriptor, (struct sockaddr *)&nh->reading_address, &addr_len);
 
@@ -109,7 +109,7 @@ void* node_initialize_reading_thread(void * arguments)
 
             NodePort* new_port = (NodePort*)calloc(sizeof(NodePort),1);
 
-            new_port->next = 0;
+            // new_port->next = 0;
             new_port->address = incoming_message.address;
 
             // 1. Find that publication
