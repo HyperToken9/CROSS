@@ -1,4 +1,4 @@
-final: cros-core sample-publisher
+final: cros-core sample-publisher sample-subscriber
 
 cros-core: cros-core.c cros
 	gcc -o cros-core.o cros-core.c build/cros.a -pthread
@@ -6,9 +6,11 @@ cros-core: cros-core.c cros
 sample-publisher: sample-publisher.c cros
 	gcc -o sample-publisher.o sample-publisher.c build/cros.a -pthread
 
-cros: master messages node subscriber publisher linkedlist
-	ar rcs build/cros.a build/master.o build/messages.o build/node.o 
-		build/publisher.o build/subscriber.o build/linkedlist.o
+sample-subscriber: sample-subscriber.c cros
+	gcc -o sample-subscriber.o sample-subscriber.c build/cros.a -pthread
+
+cros: master linkedlist messages node subscriber publisher 
+	ar rcs build/cros.a build/master.o build/messages.o build/node.o build/publisher.o build/subscriber.o build/linkedlist.o
 
 master: cross/master/master.c
 	gcc -o build/master.o -c cross/master/master.c

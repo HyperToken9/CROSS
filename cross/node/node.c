@@ -112,9 +112,17 @@ void* node_initialize_reading_thread(void * arguments)
             // new_port->next = 0;
             new_port->address = incoming_message.address;
 
+
             // 1. Find that publication
-            // 2. Add the new port to the end of the subscribed nodes        
-            // if (nh->)
+            LinkedListNode * publication = nh->publications;
+
+            while (strcmp(((Publication *)publication->data)->topic_name, 
+                            incoming_message.topic_name) != 0)
+                publication = publication->next;
+            
+            /* Add Port to the subscribed nodes of the Publication */         
+            linkedlist_append(&((Publication *)publication->data)->subscribed_nodes, 
+                                new_port);
 
 
         }
