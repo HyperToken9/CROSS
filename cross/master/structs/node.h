@@ -1,8 +1,12 @@
 #pragma once
 
-#include "topic_list.h"
+#include <netinet/in.h>
 
-struct NodeList
+#include "topic.h"
+#include "../../linkedlist/linkedlist.h"
+
+
+struct Node
 {
     char name[50];
 
@@ -12,8 +16,9 @@ struct NodeList
         List Of Topics This Node 
         Subscribes or Publishes To
     */
-    struct TopicList *topics;
+    LinkedListNode * topics;
+    // struct TopicList *topics;
 
     /* Pointer to next Node in List*/
-    struct NodeList* next;
+    // struct NodeList* next;
 };

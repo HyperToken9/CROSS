@@ -3,8 +3,9 @@
 #include <netinet/in.h>
 #include <pthread.h> 
 
-#include "master_registry.h"
+// #include "master_registry.h"
 #include "master_node_connection.h"
+#include "../../linkedlist/linkedlist.h"
 
 struct Master{
 
@@ -18,7 +19,9 @@ struct Master{
 
     // Shareable Data
     pthread_mutex_t registry_lock;
-    struct MasterRegistry registry;
+    /* List of  Active Nodes */
+    LinkedListNode * active_node_registry;
+    // struct MasterRegistry registry;
 
 };
 

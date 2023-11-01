@@ -36,7 +36,7 @@ void master_init(struct Master *master)
     } 
 
     /* Setting Up Registry */
-    master->registry.active_nodes = NULL;
+    master->active_node_registry = NULL;
     
 
     printf("Master Listening At Port %d\n", PORT_NO);
@@ -116,7 +116,9 @@ void* master_process_incoming_connection(void * arg)
     print_master_message(message);
 
     /* Process Incomming Data */
+    pthread_mutex_lock(&master->registry_lock);
     master_process_message(master, message);
+    pthread_mutex_unlock(&master->registry_lock);
 
     /* Display Updates */
     master_print_registry(master);
@@ -129,60 +131,31 @@ void* master_process_incoming_connection(void * arg)
 }
 
 
-void master_process_message(struct Master *master, NodeToMasterMessage message)
+void master_process_message(struct Master *master, NodeToMasterMessage received_message)
 {
-    struct NodeList *node_trav_ptr, * new_node;
-    struct TopicList *topic_trav_ptr, *new_topic;
+    struct Node *new_node, *node_ptr, cmp_node;
+    struct Topic *new_topic;
+    // printf("Waititng for Unlock\n");
     
-    pthread_mutex_lock(&master->registry_lock);
-    if (message.type == INIT_NODE)
+    if (received_message.type == INIT_NODE)
     {   
         /* Initialize New Node */
-        new_node = (struct NodeList*)calloc(sizeof(struct NodeList), 1);
-        strcpy(new_node->name, message.node_name);
-        new_node->address = message.node_address;
-        // new_node->topics = NULL;
-        // new_node->next = NULL;
+        new_node = (struct Node*)calloc(sizeof(struct Node), 1);
+        strcpy(new_node->name, received_message.node_name);
+        new_node->address = received_message.node_address;
 
         /* Add to List */
-        node_trav_ptr = master->registry.active_nodes;
-        if (node_trav_ptr == NULL)
+        if (linkedlist_find(master->active_node_registry, new_node, master_compare_nodes) )
         {
-            master->registry.active_nodes = new_node;
+            printf("Node with name {%s} already exists\n", new_node->name);
+            return;
         }
-        else
-        {
-            while (node_trav_ptr->next != NULL)
-            {
-                printf("Comparing: %s with %s\n", node_trav_ptr->name, new_node->name);
-                if (strcmp(node_trav_ptr->name, new_node->name) == 0)
-                {
-                    printf("Node with name {%s} already exists\n", 
-                            new_node->name);
-                    pthread_mutex_unlock(&master->registry_lock);
-                    return;
-                }
+        linkedlist_append(&master->active_node_registry, new_node);
 
-                node_trav_ptr = node_trav_ptr->next;
-            } 
-            
-            printf("Comparing: %s with %s\n", node_trav_ptr->name, new_node->name);
-            if (strcmp(node_trav_ptr->name, new_node->name) == 0)
-            {
-                printf("Node with name {%s} already exists\n", 
-                        new_node->name);
-                pthread_mutex_unlock(&master->registry_lock);
-                return;
-            }
-
-
-            node_trav_ptr->next = new_node;
-        } 
-        
 
     }
-    else if ((message.type == NEW_PUBLISHER) 
-          || (message.type == NEW_SUBSCRIBER))
+    else if ((received_message.type == NEW_PUBLISHER) 
+          || (received_message.type == NEW_SUBSCRIBER))
     {
         /*  We recieve 
          *     - node name
@@ -192,79 +165,104 @@ void master_process_message(struct Master *master, NodeToMasterMessage message)
             i. We assume the node is in the list
          2. Add Node to topic list
          MAIN: Desiging and setting up a peer to peer connection between nodes
-         3. Inform all the future nodes subscribed to that topic to listen to a port
-         4. Inform all the prexisting nodes about the new port
+         3. Inform all the prexisting nodes about the new port
          */ 
         
         // 1. 
-        node_trav_ptr = master->registry.active_nodes;
-
-        while (strcmp(node_trav_ptr->name, message.node_name) != 0)
-            node_trav_ptr = node_trav_ptr->next; 
-        
+        strcpy(cmp_node.name, received_message.node_name);
+        // printf("Finding Node\n");
+        node_ptr = linkedlist_find(master->active_node_registry, &cmp_node, master_compare_nodes);
+        // printf("Found Node Node\n");
         // 2.
-        // ! Need to check topic type conflicts
+        // ! Need to check topic TYPE conflicts
 
-        new_topic = (struct TopicList*)calloc(sizeof(struct TopicList), 1);
-        strcpy(new_topic->topic_name, message.topic_name); 
-        new_topic->message_type = message.topic_type;
-        if (message.type == NEW_PUBLISHER)
+        new_topic = (struct Topic*)calloc(sizeof(struct Topic), 1);
+        strcpy(new_topic->topic_name, received_message.topic_name); 
+        new_topic->message_type = received_message.topic_type;
+        if (received_message.type == NEW_PUBLISHER)
             new_topic->type = PUBLISHER;
         else 
             new_topic->type = SUBSCRIBER; 
-
-        if (node_trav_ptr->topics == NULL)
-            node_trav_ptr->topics = new_topic;
-        else
+        
+        if (linkedlist_find(node_ptr->topics, new_topic, master_compare_topics))
         {
-            topic_trav_ptr = node_trav_ptr->topics;
-
-            while (topic_trav_ptr->next)
-                topic_trav_ptr = topic_trav_ptr->next;
-            
-            topic_trav_ptr->next = new_topic;
-
+            printf("Node{%s} already Established to topic{%s}", node_ptr->name, new_topic->topic_name);
+            return;
         }
+
+        linkedlist_append(&node_ptr->topics, new_topic);
+
+        /*
+            If New Subscriber:
+                Inform ALL exisiting publishers about the port the new subscriber is on
+            If New Publisher:
+                Pass it a list of ports that subscribers are on
+        */
+
+        if (received_message.type == NEW_PUBLISHER)
+        {
+            
+        }
+
+
         
     }
     else
         printf("This Message Type is not supported by cros YET\n");
     
-    pthread_mutex_unlock(&master->registry_lock);
 
 }
 
 void master_print_registry(struct Master *master)
 {   
-    printf("~~ Master Registry ~~\n");
+    printf("~~ Node Registry ~~\n");
     
-    for (struct NodeList * node = master->registry.active_nodes; node != NULL; node = node->next)
+    for ( LinkedListNode * node = master->active_node_registry; node != NULL; node = node->next )
     {
-        printf("Node { %s } At Port (%d):", node->name, ntohs(node->address.sin_port));
-
-        for(struct TopicList * topic = node->topics; topic != NULL; topic = topic->next)
+        struct Node* cros_node = (struct Node *)node->data;
+        printf("Node Name : %s\n", cros_node->name);
+        printf("Port: %d\n",  ntohs(cros_node->address.sin_port));
+        printf("Topics:\n");
+        for (LinkedListNode * topic_node = cros_node->topics; topic_node != NULL; topic_node = topic_node->next)
         {
-            printf(" %s ( %s ) | ", topic->topic_name, topic->type == SUBSCRIBER ? "SUB": "PUB");
-        } 
-
+            struct Topic* topic = (struct Topic *)topic_node->data;
+            printf("\t %s\n", topic->topic_name);
+        }
         printf("\n");
+    }   
 
-    }
+    // for (struct Node * node = master->registry.active_nodes; node != NULL; node = node->next)
+    // {
+    //     printf("Node { %s } At Port (%d):", node->name, ntohs(node->address.sin_port));
+
+    //     for(struct Topic * topic = node->topics; topic != NULL; topic = topic->next)
+    //     {
+    //         printf(" %s ( %s ) | ", topic->topic_name, topic->type == SUBSCRIBER ? "SUB": "PUB");
+    //     } 
+
+    //     printf("\n");
+
+    // }
     printf("~~ ~~ ~~ ~~ ~~ ~~ ~~");
 
 }
 
+int master_compare_nodes(void * node1, void * node2)
+{
+    struct Node * n1 = (struct Node *) node1, 
+                * n2 = (struct Node *) node2;
+    if ( strcmp(n1->name, n2->name) == 0 )
+        return 1;
+    return 0;
 
-// void master_close_connection(struct Master *master)
-// {
-//     printf("Master_CloseConnection Does Nothing\n");
-//     // close(master->connect_sd);
-// }
+}
 
-// void master_close(struct Master *master)
-// {
+int master_compare_topics(void * topic1, void * topic2)
+{
+    struct Topic * t1 = (struct Topic *) topic1, 
+                * t2 = (struct Topic *) topic2;
+    if ( strcmp(t1->topic_name, t2->topic_name) == 0 )
+        return 1;
+    return 0;
 
-//     printf("Master Shutting Down\n");
-// }
-
- 
+}

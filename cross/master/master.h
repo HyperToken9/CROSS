@@ -13,7 +13,7 @@
 
 
 #include "structs/master_struct.h"
-#include "structs/node_list.h"
+#include "structs/node.h"
 
 #include "../messages/node_to_master.h"
 #include "../messages/print.h"
@@ -31,5 +31,7 @@ void* master_process_incoming_connection(void* arg); //(struct Master *master);
 
 void master_process_message(struct Master *master, NodeToMasterMessage message);
 
+int master_compare_nodes(void * node1, void * node2);
+int master_compare_topics(void * topic1, void * topic2);
 // void master_close_connection(struct Master *master);
 // void master_close(struct Master *master);
