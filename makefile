@@ -9,8 +9,9 @@ sample-publisher: sample-publisher.c cros
 sample-subscriber: sample-subscriber.c cros
 	gcc -o sample-subscriber.o sample-subscriber.c build/cros.a -pthread
 
-cros: master linkedlist messages node subscriber publisher 
-	ar rcs build/cros.a build/master.o build/messages.o build/node.o build/publisher.o build/subscriber.o build/linkedlist.o
+cros: master linkedlist networking messages node subscriber publisher 
+	ar rcs build/cros.a build/master.o build/messages.o build/node.o \
+	build/publisher.o build/subscriber.o build/linkedlist.o build/networking.o
 
 master: cross/master/master.c
 	gcc -o build/master.o -c cross/master/master.c
@@ -30,3 +31,5 @@ subscriber: cross/subscriber/subscriber.c
 linkedlist: cross/linkedlist/linkedlist.c
 	gcc -o build/linkedlist.o -c cross/linkedlist/linkedlist.c
 
+networking: cross/networking/networking.c
+	gcc -o build/networking.o -c cross/networking/networking.c

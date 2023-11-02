@@ -145,9 +145,11 @@ void node_connect_to_master(NodeHandle *nh)
         exit(EXIT_FAILURE); 
     }
 
-    nh->writing_address.sin_family = AF_INET;
-    nh->writing_address.sin_addr.s_addr = inet_addr("127.0.0.1");
-    nh->writing_address.sin_port = htons((uint16_t)8080);
+    nh->writing_address = networking_address_init("127.0.0.1", 8080);
+
+    // nh->writing_address.sin_family = AF_INET;
+    // nh->writing_address.sin_addr.s_addr = inet_addr("127.0.0.1");
+    // nh->writing_address.sin_port = htons((uint16_t)8080);
     
 
     int result = connect(nh->writing_socket_descriptor, 
