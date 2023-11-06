@@ -13,7 +13,37 @@ struct sockaddr_in networking_address_init(char ip_address[], int port_no)
 
 }
 
-// void networking_socket_init(){}
+int networking_socket_init(struct sockaddr_in address)
+{
+    int socket_descriptor = socket(AF_INET, SOCK_STREAM, 0);
 
+    if (socket_descriptor < 0)
+    {
+        printf("\n Socket creation error \n"); 
+        exit(EXIT_FAILURE); 
+    }
+
+    int result = connect(socket_descriptor, (struct sockaddr*)&address, sizeof(address));
+
+    if (result == -1)
+    {
+        printf("Failed To Connect\n");
+        exit(EXIT_FAILURE);
+    }
+
+
+    return socket_descriptor;
+
+}
+
+void networking_write_message(int socket_descriptor, void * message, unsigned int message_size)
+{   
+    int result;
+
+    result = write(socket_descriptor, message, message_size);
+
+    if (result < 0)
+        perror("Master Error Writing data");
+}
 // void networking_port_listen(){}
 

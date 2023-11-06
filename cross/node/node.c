@@ -56,6 +56,8 @@ void node_init(NodeHandle *nh, char name[])
     
 
     /* Get Registered with Master */
+
+    /* Conenct with master */
     node_connect_to_master(nh);
 
     /* Create Message */
@@ -120,10 +122,15 @@ void* node_initialize_reading_thread(void * arguments)
                             incoming_message.topic_name) != 0)
                 publication = publication->next;
             
+            printf("Length of subscibed nodes : %d\n", 
+            linkedlist_length(((Publication *)publication->data)->subscribed_nodes));
+
             /* Add Port to the subscribed nodes of the Publication */         
             linkedlist_append(&((Publication *)publication->data)->subscribed_nodes, 
                                 new_port);
-
+            
+            printf("Length of subscibed nodes : %d\n", 
+            linkedlist_length(((Publication *)publication->data)->subscribed_nodes));
 
         }
         else
@@ -137,30 +144,11 @@ void* node_initialize_reading_thread(void * arguments)
 
 void node_connect_to_master(NodeHandle *nh)
 {
-    nh->writing_socket_descriptor = socket(AF_INET, SOCK_STREAM, 0);
-
-    if (nh->writing_socket_descriptor < 0)
-    {
-        printf("\n Socket creation error \n"); 
-        exit(EXIT_FAILURE); 
-    }
 
     nh->writing_address = networking_address_init("127.0.0.1", 8080);
 
-    // nh->writing_address.sin_family = AF_INET;
-    // nh->writing_address.sin_addr.s_addr = inet_addr("127.0.0.1");
-    // nh->writing_address.sin_port = htons((uint16_t)8080);
-    
+    nh->writing_socket_descriptor = networking_socket_init(nh->writing_address);
 
-    int result = connect(nh->writing_socket_descriptor, 
-                        (struct sockaddr*)&nh->writing_address, 
-                        sizeof(nh->writing_address));
-
-    if (result == -1)
-    {
-        printf("Failed To Connect To CROSS Core\n");
-        exit(0);
-    }
 }
 
 void node_message_master(NodeHandle *nh, NodeToMasterMessage message)
@@ -173,8 +161,8 @@ void node_message_master(NodeHandle *nh, NodeToMasterMessage message)
         perror("Error Writing NodeToMasterMessage\n");
         exit(EXIT_FAILURE);
     }
-    // else    
-        // printf("Message Succesful\n");
+    
+
 }
 
 void node_disconnect_from_master(NodeHandle *nh)

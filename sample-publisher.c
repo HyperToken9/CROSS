@@ -12,7 +12,7 @@ int main(int argc, char* argv[])
     NodeHandle nh, nh1;
     Publisher string_publisher;
     Subscriber int_subscriber;
-
+    
     node_init(&nh, "talker");
     // node_init(&nh1, "walker");
 

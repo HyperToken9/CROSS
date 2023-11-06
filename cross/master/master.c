@@ -45,8 +45,6 @@ void master_init(struct Master *master)
 void master_listen(struct Master *master)
 {
    
-    
-
     // printf("Access Acquired\n");
     master->incoming_node.node_size = sizeof(int);
     
@@ -88,7 +86,7 @@ void* master_process_incoming_connection(void * arg)
     struct Master * master = (struct Master *) arg; 
     /* / / / / / / / / */
 
-    /* Duplicate Socket Conenctiom */
+    /* Duplicate Socket Conenction */
     pthread_mutex_lock(&master->incoming_node_lock);
 
     struct MasterNodeConnection node_socket;
@@ -98,7 +96,6 @@ void* master_process_incoming_connection(void * arg)
     master->incoming_node.in_use = 0;
     pthread_mutex_unlock(&master->incoming_node_lock);
 
-    // master = NULL;
     /* / / / / / / / / / / / / / / */
 
 
@@ -110,14 +107,14 @@ void* master_process_incoming_connection(void * arg)
                 &message, sizeof(NodeToMasterMessage));
 
     if (flag < 0)
-        perror("Error receiving data");
+        perror("Master Error receiving data");
 
     // printf("Rec: %s\n", buffer);
     print_master_message(message);
 
     /* Process Incomming Data */
     pthread_mutex_lock(&master->registry_lock);
-    master_process_message(master, message);
+    master_process_message(master, message, node_socket);
     pthread_mutex_unlock(&master->registry_lock);
 
     /* Display Updates */
@@ -131,11 +128,12 @@ void* master_process_incoming_connection(void * arg)
 }
 
 
-void master_process_message(struct Master *master, NodeToMasterMessage received_message)
+void master_process_message(struct Master *master, 
+                            NodeToMasterMessage received_message, 
+                            struct MasterNodeConnection node_socket)
 {
     struct Node *new_node, *node_ptr, cmp_node;
-    struct Topic *new_topic;
-    // printf("Waititng for Unlock\n");
+    struct Topic *new_topic, *topic_ptr;
     
     if (received_message.type == INIT_NODE)
     {   
@@ -198,12 +196,96 @@ void master_process_message(struct Master *master, NodeToMasterMessage received_
             If New Publisher:
                 Pass it a list of ports that subscribers are on
         */
-
+        int flag, node_socket_desc;
+        NodeToNodeMessage send_message;
+        send_message.from_master = 1;
+        strcpy(send_message.topic_name, received_message.topic_name);
+        
         if (received_message.type == NEW_PUBLISHER)
         {
-            
-        }
+            for (LinkedListNode* list_node = master->active_node_registry;
+                list_node != NULL; list_node = list_node->next)
+            {
+                // printf("Node Count: %d\n", ++nc);
+                node_ptr = list_node->data;
+                for (LinkedListNode* topic_node = node_ptr->topics;
+                    topic_node != NULL; topic_node = topic_node->next)
+                {
+                    topic_ptr = topic_node->data;
+                    // printf("Topic Count: %d\n", ++tc);
+                    if (topic_ptr->type != SUBSCRIBER)
+                        continue;
+                    
+                    if (strcmp(topic_ptr->topic_name, 
+                               received_message.topic_name)!= 0)
+                        continue;
+                    
+                    printf("Need to Inform\nNode : %s\n", node_ptr->name);
+                    printf("At Port: %d\n", ntohs(node_ptr->address.sin_port));
+                    
+                    
+                    send_message.address = node_ptr->address;
 
+                    networking_write_message(node_socket.socket_descriptor, 
+                                            &send_message, sizeof(NodeToNodeMessage));
+
+                    // printf("Message Sent: %d\n", ++mc);
+                    // flag = write(node_socket.socket_descriptor, 
+                    //             &send_message, sizeof(NodeToNodeMessage));
+                    // // int new_pub_fd = 
+                    // if (flag < 0)
+                    //     perror("Master Error Writing data");
+
+                }
+
+
+            }
+        
+            send_message.address.sin_port = 0;
+            networking_write_message(node_socket.socket_descriptor, 
+                                    &send_message, sizeof(NodeToNodeMessage));
+
+            // printf("Messages Sent\n");
+        }
+        else
+        {
+            printf("Need to inform current Publishers\n");
+            
+            for (LinkedListNode* list_node = master->active_node_registry;
+                list_node != NULL; list_node = list_node->next)
+            {
+                // printf("Node Count: %d\n", ++nc);
+                node_ptr = list_node->data;
+                for (LinkedListNode* topic_node = node_ptr->topics;
+                    topic_node != NULL; topic_node = topic_node->next)
+                {
+                    topic_ptr = topic_node->data;
+                    
+                    if (topic_ptr->type != PUBLISHER)
+                        continue;
+
+                    if (strcmp(topic_ptr->topic_name, 
+                               received_message.topic_name)!= 0)
+                        continue;
+                    
+                    /* Connect with the Node */
+                    node_socket_desc = networking_socket_init(node_ptr->address);
+
+                    /* Create a message */
+                    send_message.address = received_message.node_address;
+                    
+                    /* Send Publishers the Message */
+                    networking_write_message(node_socket.socket_descriptor, 
+                                            &send_message, sizeof(NodeToNodeMessage));
+
+                    /*Close Connection */
+                    close(node_socket_desc);
+
+                }
+
+            }
+
+        }
 
         
     }
@@ -211,6 +293,11 @@ void master_process_message(struct Master *master, NodeToMasterMessage received_
         printf("This Message Type is not supported by cros YET\n");
     
 
+}
+
+void master_iterate_topics(struct Node * node_ptr, struct Topic * topic_ptr)
+{
+    // if (topic)
 }
 
 void master_print_registry(struct Master *master)

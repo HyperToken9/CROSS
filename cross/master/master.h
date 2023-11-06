@@ -5,18 +5,21 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
 #include <sys/types.h>
 #include <sys/socket.h>
-
-#include <arpa/inet.h>
-#include <netinet/in.h>
 
 
 #include "structs/master_struct.h"
 #include "structs/node.h"
 
 #include "../messages/node_to_master.h"
+#include "../messages/node_to_node.h"
 #include "../messages/print.h"
+
+#include "../networking/networking.h"
 
 
 void master_init(struct Master *master);
@@ -29,7 +32,7 @@ void master_wait_thread_initialization(struct Master *master);
 
 void* master_process_incoming_connection(void* arg); //(struct Master *master);
 
-void master_process_message(struct Master *master, NodeToMasterMessage message);
+void master_process_message(struct Master *master, NodeToMasterMessage received_message, struct MasterNodeConnection node_socket);
 
 int master_compare_nodes(void * node1, void * node2);
 int master_compare_topics(void * topic1, void * topic2);

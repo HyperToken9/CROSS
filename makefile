@@ -9,7 +9,7 @@ sample-publisher: sample-publisher.c cros
 sample-subscriber: sample-subscriber.c cros
 	gcc -o sample-subscriber.o sample-subscriber.c build/cros.a -pthread
 
-cros: master linkedlist networking messages node subscriber publisher 
+cros: linkedlist networking messages master node subscriber publisher 
 	ar rcs build/cros.a build/master.o build/messages.o build/node.o \
 	build/publisher.o build/subscriber.o build/linkedlist.o build/networking.o
 

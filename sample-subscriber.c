@@ -15,7 +15,7 @@ int main(int argc, char* argv[])
 
     node_init(&nh, "listener");
 
-    subscriber_init(&int_subscriber, &nh, "listen", CROS_MSG_TYPE_INT);
+    subscriber_init(&int_subscriber, &nh, "chatter", CROS_MSG_TYPE_INT);
 
     // Dont Quit
     while(1);

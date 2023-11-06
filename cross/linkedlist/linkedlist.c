@@ -48,5 +48,18 @@ void linkedlist_print(LinkedListNode * head, void (*print)(void *))
     printf("\n");
 }
 
+int linkedlist_length(LinkedListNode * head)
+{
+    LinkedListNode * traversal = head;
+    int length = 0;
 
+    while ( traversal != NULL )
+    {
+        length++;
+        traversal = traversal->next;
+    }
+
+    return length;
+
+}
 
