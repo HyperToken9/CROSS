@@ -55,8 +55,6 @@ void node_init(NodeHandle *nh, char name[])
                    &node_initialize_reading_thread,
                    (void *) nh);
     
-    
-    
 
     /* Get Registered with Master */
 
@@ -141,20 +139,66 @@ void* node_initialize_reading_thread(void * arguments)
                             incoming_message.topic_name) != 0)
                 publication = publication->next;
             
-            printf("Length of subscibed nodes : %d\n", 
-            linkedlist_length(((Publication *)publication->data)->subscribed_nodes));
+            // printf("Length of subscibed nodes : %d\n", 
+            // linkedlist_length(((Publication *)publication->data)->subscribed_nodes));
 
             /* Add Port to the subscribed nodes of the Publication */         
-            linkedlist_append(&((Publication *)publication->data)->subscribed_nodes, 
-                                new_port);
+            // linkedlist_append(&((Publication *)publication->data)->subscribed_nodes, 
+                                // new_port);
             
-            printf("Length of subscibed nodes : %d\n", 
-            linkedlist_length(((Publication *)publication->data)->subscribed_nodes));
+            // printf("Length of subscibed nodes : %d\n", 
+            // linkedlist_length(((Publication *)publication->data)->subscribed_nodes));
 
         }
         else
         {
             printf("Recieved Data from subscribed topic\n");
+            
+            // Find Subscription
+            Subscription* subscription;
+            LinkedListNode* traversal_ptr;
+            
+            // printf("Length : %d\n", linkedlist_length(nh->subscriptions));
+
+            // printf("Topic A : %s\n", incoming_message.topic_name);
+            // printf("Topic B : %s\n", ((Subscription*)nh->subscriptions->data )->topic_name);
+
+
+            for (traversal_ptr = nh->subscriptions; 
+                strcmp(( (Subscription*)traversal_ptr->data )->topic_name, 
+                        incoming_message.topic_name) != 0; 
+                traversal_ptr = traversal_ptr->next)
+                ;
+                // printf("Not FOuhnd\n");
+            // printf("Exiting %d\n", traversal_ptr);
+            // printf("Topic B : %s\n", ((Subscription*)traversal_ptr->data )->topic_name);
+        
+            subscription = (Subscription*)traversal_ptr->data;
+            printf("Found Subscription For Topic : %s\n", subscription->topic_name);
+
+            // Recieve Data From Publisher
+            if (subscription->message_type == CROS_MSG_TYPE_STRING)
+            {
+                printf("Need to Recieve String\n");
+
+                // Read Length of string;
+                unsigned int size;
+                read(socket_descriptor, &size, sizeof(size));
+                printf("Size of Incoming String :%d\n", size);
+
+                char * data = (char *)calloc(size, sizeof(char));
+                read(socket_descriptor, data, size);
+                // printf("")
+                subscription->callback_ptr(data);
+                
+            }
+            else
+                printf("Error: Unable to Transmit this data-type\n");
+
+            // Tigger Callback
+
+            // subscription->callback_ptr();
+
         }
 
         close(socket_descriptor);

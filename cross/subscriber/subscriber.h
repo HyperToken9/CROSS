@@ -12,5 +12,5 @@
 #include "../messages/node_to_master.h"
 #include "../messages/types.h"
 
-void subscriber_init(Subscriber* string_publisher, NodeHandle* nh, char topic_name[], enum CROS_MessageTypes type);
-
+// void subscriber_init(Subscriber* string_publisher, NodeHandle* nh, char topic_name[], enum CROS_MessageTypes type);
+void subscriber_init(Subscriber* subscriber, NodeHandle* nh, char topic_name[], enum CROS_MessageTypes type, void (*callback_ptr)(void *));

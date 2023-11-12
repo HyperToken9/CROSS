@@ -4,6 +4,7 @@
 #include <netinet/in.h>
 
 #include "../linkedlist/linkedlist.h"
+#include "../messages/types.h"
 
 struct NodePort{
     struct sockaddr_in address;
@@ -16,6 +17,14 @@ typedef struct NodePort NodePort;
 
 struct Subscription{
     char topic_name[50];
+    enum CROS_MessageTypes message_type;
+    /* 
+        Callback
+        - returns void
+        - arguments
+            datatype (void *)
+    */
+   void (*callback_ptr)(void *);
     // struct Subscription * next;
 };
 typedef struct Subscription Subscription;
@@ -24,6 +33,7 @@ typedef struct Subscription Subscription;
 struct Publication{
     
     char topic_name[50];
+    enum CROS_MessageTypes message_type;
 
     /* List of Node Ports */
     LinkedListNode * subscribed_nodes;

@@ -75,6 +75,8 @@ void publisher_publish(Publisher* publisher, NodeHandle* nh, void * data, unsign
     NodeToNodeMessage message;
 
     Publication* publication;
+    NodePort* node_port;
+    int socket_descriptor;
 
     LinkedListNode* travesal_ptr;
 
@@ -83,10 +85,42 @@ void publisher_publish(Publisher* publisher, NodeHandle* nh, void * data, unsign
 
     travesal_ptr = nh->publications;
 
-    while( strcmp(((Publication*)travesal_ptr->data)->topic_name, publisher->topic_name) != 0 )
+    while( strcmp(((Publication *)travesal_ptr->data)->topic_name, 
+                    publisher->topic_name) != 0 )
         travesal_ptr = travesal_ptr->next;
-
+    
+    publication = (Publication *) travesal_ptr->data;
     printf("Found Publication\n");
+
+
+    travesal_ptr = publication->subscribed_nodes;
+
+    while (travesal_ptr != NULL)
+    {
+        node_port = (NodePort *) travesal_ptr->data;
+
+        socket_descriptor = networking_socket_init(node_port->address);
+
+        write(socket_descriptor, &message, sizeof(message));
+
+        if (publication->message_type == CROS_MSG_TYPE_STRING)
+        {
+            printf("Need To Send String\n");
+            // Send Data Size
+
+            write(socket_descriptor, &data_size, sizeof(data_size));
+            write(socket_descriptor, data, data_size);
+            printf("Sent Messages\n");
+        }
+        else
+            printf("Error: Unable to Transmit this data-type\n");
+
+
+        close(socket_descriptor);
+        travesal_ptr = travesal_ptr->next;
+    }
+
+    
 
 
 }

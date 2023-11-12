@@ -10,7 +10,6 @@
 #include <sys/socket.h>
 
 
-
 struct sockaddr_in networking_address_init(char ip_address[], int port_no);
 
 int networking_socket_init(struct sockaddr_in address);
