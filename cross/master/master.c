@@ -249,6 +249,7 @@ void master_process_message(struct Master *master,
         }
         else
         {
+            send_message.from_master = 1;
             printf("Need to inform current Publishers\n");
             
             for (LinkedListNode* list_node = master->active_node_registry;
@@ -273,10 +274,22 @@ void master_process_message(struct Master *master,
 
                     /* Create a message */
                     send_message.address = received_message.node_address;
-                    
+                    // strcpy(send_message.topic_name, "Blank Banking Banket");
+                    printf("Sending Message From master: %d\n", send_message.from_master);
+                    printf("message: %s\n", send_message.topic_name);
                     /* Send Publishers the Message */
-                    networking_write_message(node_socket.socket_descriptor, 
-                                            &send_message, sizeof(NodeToNodeMessage));
+                    // networking_write_message(node_socket.socket_descriptor, 
+                    //                         &send_message, sizeof(NodeToNodeMessage));
+
+                    // write(node_socket.socket_descriptor, &send_message, sizeof(NodeToNodeMessage));
+
+                    char buffer[50];
+                    strcpy(buffer, "This is my message to ..");
+
+                    write(node_socket_desc, &send_message, sizeof(send_message));
+                    // write(node_socket.socket_descriptor, buffer, sizeof(buffer));
+                    // send(node_socket_desc, buffer, strlen(buffer), 0);
+                    
 
                     /*Close Connection */
                     close(node_socket_desc);

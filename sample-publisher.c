@@ -9,9 +9,10 @@
 int main(int argc, char* argv[])
 {
 
-    NodeHandle nh, nh1;
+    NodeHandle nh;
     Publisher string_publisher;
     Subscriber int_subscriber;
+    char data[50];
     
     node_init(&nh, "talker");
     // node_init(&nh1, "walker");
@@ -23,8 +24,11 @@ int main(int argc, char* argv[])
     // subscriber_init(&int_subscriber, &nh, "listen1", CROS_MSG_TYPE_INT);
     // subscriber_init(&int_subscriber, &nh1, "hup2", CROS_MSG_TYPE_INT);
     // printf("Passed Through");
+    sleep(3);
 
+    strcpy(data, "Hello Subscribers");
 
+    publisher_publish(&string_publisher, &nh, data, sizeof(data));
     // Dont Quit
     while(1);
 

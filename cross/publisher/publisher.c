@@ -15,6 +15,10 @@ void publisher_init(Publisher* publisher, NodeHandle* nh, char topic_name[], enu
         exit(0);
     }
 
+    strcpy(publisher->topic_name, topic_name);
+    publisher->message_type = type;
+
+
     Publication * new_publication = (Publication *)calloc(sizeof(Publication), 1);
     strcpy(new_publication->topic_name, topic_name);
 
@@ -57,6 +61,33 @@ void publisher_init(Publisher* publisher, NodeHandle* nh, char topic_name[], enu
     // linkedlist_print(nh->publications, publisher_print_publications);
 
     node_disconnect_from_master(nh);
+
+}
+
+
+void publisher_publish(Publisher* publisher, NodeHandle* nh, void * data, unsigned int data_size)
+{
+    // 1. Create Message
+    // 2. For each subscriber in subscription in list
+    //       i. Connect 
+    //      ii. Send Message
+
+    NodeToNodeMessage message;
+
+    Publication* publication;
+
+    LinkedListNode* travesal_ptr;
+
+    message.from_master = 0;
+    strcpy(message.topic_name, publisher->topic_name);
+
+    travesal_ptr = nh->publications;
+
+    while( strcmp(((Publication*)travesal_ptr->data)->topic_name, publisher->topic_name) != 0 )
+        travesal_ptr = travesal_ptr->next;
+
+    printf("Found Publication\n");
+
 
 }
 

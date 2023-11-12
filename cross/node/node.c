@@ -29,9 +29,12 @@ void node_init(NodeHandle *nh, char name[])
     nh->reading_address.sin_addr.s_addr = inet_addr("127.0.0.1");
     nh->reading_address.sin_port = 0; // Random Assignment
 
-    bind(nh->reading_socket_descriptor, 
-        (struct sockaddr *)& nh->reading_address,
-        sizeof(nh->reading_address));
+    if (bind(nh->reading_socket_descriptor, 
+            (struct sockaddr *)& nh->reading_address,
+            sizeof(nh->reading_address))< 0) {
+        perror("bind failed");
+        exit(EXIT_FAILURE);
+    }
     listen(nh->reading_socket_descriptor, 10);
 
     /* Use getsockname to retrieve the actual port number */ 
@@ -77,14 +80,22 @@ void node_init(NodeHandle *nh, char name[])
 void* node_initialize_reading_thread(void * arguments)
 {
     NodeHandle* nh = (NodeHandle*) arguments;
-    int socket_descriptor, length, flag;
+    int socket_descriptor, flag;
+    socklen_t length;
     // printf("Node %s has initialized reading thread\n", nh->node_name);
     while(1) // TODO : Use a variable in arguments instead
     {
-        length = sizeof(length);
+        length = sizeof(struct sockaddr_in);
         socket_descriptor = accept(nh->reading_socket_descriptor, 
                                    (struct sockaddr*)&nh->reading_address,
                                    &length);
+
+        if (socket_descriptor < 0)
+        {
+            printf("Accept Failed\n");
+            printf("Error Code: %d\n", socket_descriptor);
+        }  
+
 
         /* Reading Incoming Messages */
         /*
@@ -100,6 +111,14 @@ void* node_initialize_reading_thread(void * arguments)
         */
         NodeToNodeMessage incoming_message;
         flag = read(socket_descriptor, &incoming_message, sizeof(incoming_message)); 
+
+        if (flag < 0)
+            perror("Master Error receiving data");
+
+
+        printf("From master? : %d\n", incoming_message.from_master);
+        printf("Topic Name: %s\n", incoming_message.topic_name);
+        
 
         if (incoming_message.from_master)
         {
@@ -138,6 +157,7 @@ void* node_initialize_reading_thread(void * arguments)
             printf("Recieved Data from subscribed topic\n");
         }
 
+        close(socket_descriptor);
 
     }
 }

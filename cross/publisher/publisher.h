@@ -13,3 +13,5 @@
 
 void publisher_init(Publisher* string_publisher, NodeHandle* nh, char topic_name[], enum CROS_MessageTypes type);
 
+void publisher_publish(Publisher* publisher, NodeHandle* nh, void * data, unsigned int data_size);
+
