@@ -17,14 +17,14 @@ typedef struct NodePort NodePort;
 
 struct Subscription{
     char topic_name[50];
-    enum CROS_MessageTypes message_type;
+    // enum CROS_MessageTypes message_type;
     /* 
         Callback
         - returns void
         - arguments
             datatype (void *)
     */
-   void (*callback_ptr)(void *);
+   void (*callback_ptr)(void *, unsigned int);
     // struct Subscription * next;
 };
 typedef struct Subscription Subscription;
@@ -33,7 +33,7 @@ typedef struct Subscription Subscription;
 struct Publication{
     
     char topic_name[50];
-    enum CROS_MessageTypes message_type;
+    // enum CROS_MessageTypes message_type;
 
     /* List of Node Ports */
     LinkedListNode * subscribed_nodes;

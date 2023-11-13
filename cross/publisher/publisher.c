@@ -3,7 +3,7 @@
 #include "publisher.h"
 
 
-void publisher_init(Publisher* publisher, NodeHandle* nh, char topic_name[], enum CROS_MessageTypes type)
+void publisher_init(Publisher* publisher, NodeHandle* nh, char topic_name[])
 {
     // printf("PUBLIHER INIT: Sends A NODE INIT TYPE MESSage\n");
     // printf("PUBLISHER Needs to be initialized after the node ")
@@ -16,7 +16,7 @@ void publisher_init(Publisher* publisher, NodeHandle* nh, char topic_name[], enu
     }
 
     strcpy(publisher->topic_name, topic_name);
-    publisher->message_type = type;
+    // publisher->message_type = type;
 
 
     Publication * new_publication = (Publication *)calloc(sizeof(Publication), 1);
@@ -26,7 +26,7 @@ void publisher_init(Publisher* publisher, NodeHandle* nh, char topic_name[], enu
 
     NodeToMasterMessage message;
     message.type = NEW_PUBLISHER;
-    message.topic_type = type;
+    // message.topic_type = type;
     strcpy(message.topic_name, topic_name);
     strcpy(message.node_name, nh->node_name);
     
@@ -50,15 +50,10 @@ void publisher_init(Publisher* publisher, NodeHandle* nh, char topic_name[], enu
         nodeport_ptr->address = incomming_message.address;
         
         linkedlist_append(&new_publication->subscribed_nodes, nodeport_ptr);
-
-        printf("Recieved %s at Port Back %d\n", incomming_message.topic_name, ntohs(incomming_message.address.sin_port));
         
     }
 
     linkedlist_append(&nh->publications, new_publication);
-
-    printf("No of Publications : %d\n", linkedlist_length(nh->publications));
-    // linkedlist_print(nh->publications, publisher_print_publications);
 
     node_disconnect_from_master(nh);
 
@@ -90,7 +85,7 @@ void publisher_publish(Publisher* publisher, NodeHandle* nh, void * data, unsign
         travesal_ptr = travesal_ptr->next;
     
     publication = (Publication *) travesal_ptr->data;
-    printf("Found Publication\n");
+    // printf("Found Publication\n");
 
 
     travesal_ptr = publication->subscribed_nodes;
@@ -103,17 +98,11 @@ void publisher_publish(Publisher* publisher, NodeHandle* nh, void * data, unsign
 
         write(socket_descriptor, &message, sizeof(message));
 
-        if (publication->message_type == CROS_MSG_TYPE_STRING)
-        {
-            printf("Need To Send String\n");
-            // Send Data Size
+        /* Send Size of message */
+        write(socket_descriptor, &data_size, sizeof(data_size));
 
-            write(socket_descriptor, &data_size, sizeof(data_size));
-            write(socket_descriptor, data, data_size);
-            printf("Sent Messages\n");
-        }
-        else
-            printf("Error: Unable to Transmit this data-type\n");
+        /* Send Data */
+        write(socket_descriptor, data, data_size);
 
 
         close(socket_descriptor);

@@ -1,0 +1,10 @@
+
+Conversation between 2
+
+Node A:
+    Talk
+    Listen
+Node B:
+    Talk
+    Listen
+    

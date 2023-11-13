@@ -17,17 +17,13 @@ int main()
 
     while(1)
     {
-        // printf("Setting Listening");
         master_listen(&master);
         
-        // printf("Recievend Conenctions\n");
 
         pthread_create(&connect_thread, NULL, 
                        &master_process_incoming_connection,
                        (void *) & master);
         
-        // master_process_incoming_connection(&master);
-
 
         master_wait_thread_initialization(&master);
         

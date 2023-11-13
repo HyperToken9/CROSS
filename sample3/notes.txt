@@ -1,0 +1,8 @@
+
+Node A:
+    Publishes int a
+Node B:
+    Subscribes int a
+    Publishes int b 
+Node C:
+    Subscribes int b

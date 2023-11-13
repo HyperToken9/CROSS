@@ -12,7 +12,7 @@ struct NodeToMasterMessage
     struct sockaddr_in node_address;
 
     char topic_name[50];
-    enum CROS_MessageTypes topic_type;
+    // enum CROS_MessageTypes topic_type;
 
 }__attribute__((packed));
 

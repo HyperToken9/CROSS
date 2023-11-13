@@ -42,7 +42,6 @@ void node_init(NodeHandle *nh, char name[])
     getsockname(nh->reading_socket_descriptor, (struct sockaddr *)&nh->reading_address, &addr_len);
 
     // Display the assigned port number
-    // printf("Assigned Port Number: %d\n", ntohs(nh->reading_address.sin_port));
 
     /* Initialize Registry Mutex*/ 
     if (pthread_mutex_init(&nh->registry_lock, NULL) != 0) { 
@@ -79,6 +78,7 @@ void* node_initialize_reading_thread(void * arguments)
 {
     NodeHandle* nh = (NodeHandle*) arguments;
     int socket_descriptor, flag;
+    
     socklen_t length;
     // printf("Node %s has initialized reading thread\n", nh->node_name);
     while(1) // TODO : Use a variable in arguments instead
@@ -114,13 +114,8 @@ void* node_initialize_reading_thread(void * arguments)
             perror("Master Error receiving data");
 
 
-        printf("From master? : %d\n", incoming_message.from_master);
-        printf("Topic Name: %s\n", incoming_message.topic_name);
-        
-
         if (incoming_message.from_master)
         {
-            printf("Node Recieved Message from master\n");
             // Master Says ... 
             // There is Node X at port P 
             // That is subscribed to topic T
@@ -133,71 +128,53 @@ void* node_initialize_reading_thread(void * arguments)
 
 
             // 1. Find that publication
-            LinkedListNode * publication = nh->publications;
+            LinkedListNode * traversal_ptr = nh->publications;
+            Publication * publication;
 
-            while (strcmp(((Publication *)publication->data)->topic_name, 
+            while (strcmp(((Publication *)traversal_ptr->data)->topic_name, 
                             incoming_message.topic_name) != 0)
-                publication = publication->next;
-            
-            // printf("Length of subscibed nodes : %d\n", 
-            // linkedlist_length(((Publication *)publication->data)->subscribed_nodes));
-
-            /* Add Port to the subscribed nodes of the Publication */         
-            // linkedlist_append(&((Publication *)publication->data)->subscribed_nodes, 
-                                // new_port);
-            
-            // printf("Length of subscibed nodes : %d\n", 
-            // linkedlist_length(((Publication *)publication->data)->subscribed_nodes));
+                traversal_ptr = traversal_ptr->next;
+            // printf("Need to add new port\n");
+            publication = traversal_ptr->data;
+            linkedlist_append(&publication->subscribed_nodes, new_port);
 
         }
         else
         {
-            printf("Recieved Data from subscribed topic\n");
             
+            unsigned int size;
+            void * data;
+
             // Find Subscription
             Subscription* subscription;
             LinkedListNode* traversal_ptr;
             
-            // printf("Length : %d\n", linkedlist_length(nh->subscriptions));
-
-            // printf("Topic A : %s\n", incoming_message.topic_name);
-            // printf("Topic B : %s\n", ((Subscription*)nh->subscriptions->data )->topic_name);
-
 
             for (traversal_ptr = nh->subscriptions; 
                 strcmp(( (Subscription*)traversal_ptr->data )->topic_name, 
                         incoming_message.topic_name) != 0; 
                 traversal_ptr = traversal_ptr->next)
                 ;
-                // printf("Not FOuhnd\n");
-            // printf("Exiting %d\n", traversal_ptr);
-            // printf("Topic B : %s\n", ((Subscription*)traversal_ptr->data )->topic_name);
-        
+
             subscription = (Subscription*)traversal_ptr->data;
-            printf("Found Subscription For Topic : %s\n", subscription->topic_name);
+            // printf("Found Subscription For Topic : %s\n", subscription->topic_name);
 
-            // Recieve Data From Publisher
-            if (subscription->message_type == CROS_MSG_TYPE_STRING)
-            {
-                printf("Need to Recieve String\n");
 
-                // Read Length of string;
-                unsigned int size;
-                read(socket_descriptor, &size, sizeof(size));
-                printf("Size of Incoming String :%d\n", size);
+            /* Recieve Size of Data */
+            read(socket_descriptor, &size, sizeof(size));
+            // printf("Size of Incoming String :%d\n", size);
 
-                char * data = (char *)calloc(size, sizeof(char));
-                read(socket_descriptor, data, size);
-                // printf("")
-                subscription->callback_ptr(data);
-                
-            }
-            else
-                printf("Error: Unable to Transmit this data-type\n");
+            /* Allocate Memory */
+            data = calloc(size, 1);
 
-            // Tigger Callback
+            /* Recieve Data */
+            read(socket_descriptor, data, size);
 
-            // subscription->callback_ptr();
+            /* Trigger Call Back */
+            subscription->callback_ptr(data, size);
+
+            /* Deallocate Memory */
+            free(data);
 
         }
 

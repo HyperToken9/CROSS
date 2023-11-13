@@ -5,10 +5,10 @@
 #include "cross/publisher/publisher.h"
 #include "cross/subscriber/subscriber.h"
 
-void callback(void * data)
+void callback(void * data, unsigned int data_size)
 {   
     char * string = (char *)data; 
-    printf("Message Recieved;  %s\n", string);
+    printf("Message Recieved:  %s\n", string);
 
 }
 
@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
 
     node_init(&nh, "listener");
 
-    subscriber_init(&int_subscriber, &nh, "chatter", CROS_MSG_TYPE_STRING, callback);
+    subscriber_init(&int_subscriber, &nh, "chatter", callback);
 
     // Dont Quit
     while(1);

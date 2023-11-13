@@ -5,7 +5,7 @@ void print_master_message(NodeToMasterMessage message)
     printf("-- Master Message --\n");
     
     printf("\tNode Name: %s\n", message.node_name);
-    // printf("Id: %d\n\t",message.id);
+
     //TODO: print_node_type(message.node_name);
     printf("\tMessage Type: ");
 

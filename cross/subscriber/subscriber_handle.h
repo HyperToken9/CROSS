@@ -5,7 +5,7 @@
 
 struct Subscriber{
     char topic_name[50];
-    enum CROS_MessageTypes message_type;
+    // enum CROS_MessageTypes message_type;
 };
 
 typedef struct Subscriber Subscriber;

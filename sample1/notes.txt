@@ -1,0 +1,7 @@
+One Publisher
+    ~ Publishes Matrix
+
+Multiple Subscribers
+    ~ Invert Matrix
+    ~ Double Matrix
+    ~ Sum of Matrix

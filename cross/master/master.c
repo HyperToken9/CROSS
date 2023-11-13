@@ -44,8 +44,6 @@ void master_init(struct Master *master)
 
 void master_listen(struct Master *master)
 {
-   
-    // printf("Access Acquired\n");
     master->incoming_node.node_size = sizeof(int);
     
     int temp_socket_descriptor = accept(master->socket_descriptor, 
@@ -61,7 +59,6 @@ void master_listen(struct Master *master)
 
     master->incoming_node.in_use = 1;
     master->incoming_node.socket_descriptor = temp_socket_descriptor;
-    // printf("Access Dissmissed\n");
 
     pthread_mutex_unlock(&master->incoming_node_lock);
     
@@ -109,7 +106,6 @@ void* master_process_incoming_connection(void * arg)
     if (flag < 0)
         perror("Master Error receiving data");
 
-    // printf("Rec: %s\n", buffer);
     print_master_message(message);
 
     /* Process Incomming Data */
@@ -168,15 +164,15 @@ void master_process_message(struct Master *master,
         
         // 1. 
         strcpy(cmp_node.name, received_message.node_name);
-        // printf("Finding Node\n");
+
         node_ptr = linkedlist_find(master->active_node_registry, &cmp_node, master_compare_nodes);
-        // printf("Found Node Node\n");
+        
         // 2.
         // ! Need to check topic TYPE conflicts
 
         new_topic = (struct Topic*)calloc(sizeof(struct Topic), 1);
         strcpy(new_topic->topic_name, received_message.topic_name); 
-        new_topic->message_type = received_message.topic_type;
+        // new_topic->message_type = received_message.topic_type;
         if (received_message.type == NEW_PUBLISHER)
             new_topic->type = PUBLISHER;
         else 
@@ -206,23 +202,18 @@ void master_process_message(struct Master *master,
             for (LinkedListNode* list_node = master->active_node_registry;
                 list_node != NULL; list_node = list_node->next)
             {
-                // printf("Node Count: %d\n", ++nc);
                 node_ptr = list_node->data;
                 for (LinkedListNode* topic_node = node_ptr->topics;
                     topic_node != NULL; topic_node = topic_node->next)
                 {
                     topic_ptr = topic_node->data;
-                    // printf("Topic Count: %d\n", ++tc);
+
                     if (topic_ptr->type != SUBSCRIBER)
                         continue;
                     
                     if (strcmp(topic_ptr->topic_name, 
                                received_message.topic_name)!= 0)
                         continue;
-                    
-                    printf("Need to Inform\nNode : %s\n", node_ptr->name);
-                    printf("At Port: %d\n", ntohs(node_ptr->address.sin_port));
-                    
                     
                     send_message.address = node_ptr->address;
 
@@ -331,18 +322,6 @@ void master_print_registry(struct Master *master)
         printf("\n");
     }   
 
-    // for (struct Node * node = master->registry.active_nodes; node != NULL; node = node->next)
-    // {
-    //     printf("Node { %s } At Port (%d):", node->name, ntohs(node->address.sin_port));
-
-    //     for(struct Topic * topic = node->topics; topic != NULL; topic = topic->next)
-    //     {
-    //         printf(" %s ( %s ) | ", topic->topic_name, topic->type == SUBSCRIBER ? "SUB": "PUB");
-    //     } 
-
-    //     printf("\n");
-
-    // }
     printf("~~ ~~ ~~ ~~ ~~ ~~ ~~");
 
 }
