@@ -1,9 +1,21 @@
 final: cros-core samples
 
-samples: sample-publisher sample-subscriber sample4
+samples: sample-publisher sample-subscriber sample1 sample2 sample3 sample4
 
-sample1: cros sample1/publisher.c
-	gcc -o sample1/publisher.o sample1/publisher.c
+sample1: cros sample1/publisher.c sample1/subscriber1.c sample1/subscriber2.c
+	gcc -o sample1/publisher.o sample1/publisher.c build/cros.a
+	gcc -o sample1/subscriber1.o sample1/subscriber1.c build/cros.a
+	gcc -o sample1/subscriber2.o sample1/subscriber2.c build/cros.a
+
+sample2: cros sample2/publisher.c sample2/subscriber.c
+	gcc -o sample2/publisher.o sample2/publisher.c build/cros.a
+	gcc -o sample2/subscriber.o sample2/subscriber.c build/cros.a
+
+
+sample3: cros sample3/nodeA.c sample3/nodeB.c sample3/nodeC.c
+	gcc -o sample3/nodeA.o sample3/nodeA.c build/cros.a
+	gcc -o sample3/nodeB.o sample3/nodeB.c build/cros.a
+	gcc -o sample3/nodeC.o sample3/nodeC.c build/cros.a
 
 sample4: cros sample4/nodeA.c sample4/nodeB.c
 	gcc -o sample4/nodeA.o sample4/nodeA.c build/cros.a

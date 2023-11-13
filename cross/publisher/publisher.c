@@ -76,6 +76,7 @@ void publisher_publish(Publisher* publisher, NodeHandle* nh, void * data, unsign
     LinkedListNode* travesal_ptr;
 
     message.from_master = 0;
+    // printf("PuvlisherL %s", publisher->topic_name);
     strcpy(message.topic_name, publisher->topic_name);
 
     travesal_ptr = nh->publications;
@@ -87,7 +88,7 @@ void publisher_publish(Publisher* publisher, NodeHandle* nh, void * data, unsign
     publication = (Publication *) travesal_ptr->data;
     // printf("Found Publication\n");
 
-
+    // printf("Topic AT: %s\n", message.topic_name);
     travesal_ptr = publication->subscribed_nodes;
 
     while (travesal_ptr != NULL)

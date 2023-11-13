@@ -7,7 +7,7 @@
 void callback(void * data, unsigned int data_size)
 {   
     int * integer = (int *)data; 
-    printf("Int Recieved:  %d\n", integer);
+    printf("Int Recieved:  %d\n", *integer);
 
 }
 

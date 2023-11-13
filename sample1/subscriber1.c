@@ -9,9 +9,9 @@ void callback(void * data, unsigned int data_size)
 {   
     Matrix * matrix = (Matrix *)data; 
     
-    matrix_multiply(&matrix, 2);
+    multiply_matrix(matrix, 2);
 
-    print_matrix(matrix);
+    print_matrix(*matrix);
 
 }
 

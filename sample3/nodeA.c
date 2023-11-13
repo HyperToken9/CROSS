@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
         printf("Enter Integer: ");
         scanf("%d", &data);
 
-        publisher_publish(&int_publisher, &nh, data, sizeof(data));
+        publisher_publish(&int_publisher, &nh, &data, sizeof(data));
     }
      
     return 0;

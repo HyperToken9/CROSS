@@ -12,11 +12,12 @@ Subscriber int_subscriber;
 void callback(void * data, unsigned int data_size)
 {   
     int * integer = (int *)data; 
-    printf("Int Recieved:  %d\n", integer);
+    printf("Int Recieved:  %d\n", *integer);
 
     /* Doubled in Value */ 
     *(integer) *= 2;
 
+    printf("Publishing:  %d\n", *integer);
     publisher_publish(&int_publisher, &nh, integer, data_size);
 
 }

@@ -20,11 +20,11 @@ int main(int argc, char* argv[])
 
     while(1)
     {   
-        printf("Enter Matrix: ");
+        printf("Enter Matrix\n");
         
         read_matrix(&matrix);
 
-        publisher_publish(&matrix_publisher, &nh, matrix, sizeof(matrix));
+        publisher_publish(&matrix_publisher, &nh, &matrix, sizeof(matrix));
     }
      
     return 0;

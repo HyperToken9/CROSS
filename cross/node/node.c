@@ -113,7 +113,7 @@ void* node_initialize_reading_thread(void * arguments)
         if (flag < 0)
             perror("Master Error receiving data");
 
-
+        // printf("Message Topic Name: %s", incoming_message.topic_name);
         if (incoming_message.from_master)
         {
             // Master Says ... 

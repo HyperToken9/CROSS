@@ -1,16 +1,15 @@
 
 #include<stdio.h>
 
-#include "../cross/node/node.h"
-#include "../cross/publisher/publisher.h"
-#include "../cross/subscriber/subscriber.h"
+#include "cross/node/node.h"
+#include "cross/publisher/publisher.h"
+#include "cross/subscriber/subscriber.h"
 
 
 void callback(void * data, unsigned int data_size)
 {   
     char * string = (char *)data; 
     printf("\nB says:  %s\n", string);
-
 }
 
 int main(int argc, char* argv[])
